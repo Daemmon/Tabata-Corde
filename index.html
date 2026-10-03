@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d10">
+  <title>Tabata Corde — V2.4</title>
+
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --card: #12161b;
+      --card-2: #171c22;
+      --text: #f5f7fa;
+      --muted: #8d98a5;
+      --work: #ff5a36;
+      --rest: #20c997;
+      --prepare: #f2b84b;
+      --line: #2b323b;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      min-height: 100svh;
+      display: flex;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      min-height: 100svh;
+      padding: 22px 18px 28px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================
+       HEADER
+       ========================= */
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .brand-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .sound-button {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--card);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .sound-button:active {
+      transform: scale(0.94);
+    }
+
+    .sound-button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* =========================
+       PANNEAU SON
+       ========================= */
+
+    .sound-panel {
+      display: none;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--card);
+    }
+
+    .sound-panel.open {
+      display: block;
+    }
+
+    .sound-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sound-label {
+      min-width: 58px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .volume-value {
+      width: 38px;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    #volume {
+      flex: 1;
+      accent-color: var(--work);
+      cursor: pointer;
+    }
+
+    /* =========================
+       TIMER
+       ========================= */
+
+    .timer-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .phase-label {
+      min-height: 30px;
+      margin-bottom: 8px;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      transition: color 0.2s ease;
+    }
+
+    .phase-label.work {
+      color: var(--work);
+    }
+
+    .phase-label.rest {
+      color: var(--rest);
+    }
+
+    .phase-label.prepare {
+      color: var(--prepare);
+    }
+
+    .phase-label.finished {
+      animation: finishPulse 0.8s ease;
+    }
+
+    .dial {
+      position: relative;
+      width: min(84vw, 410px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+    }
+
+    .dial-face {
+      position: absolute;
+      inset: 7%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, #151a20 0 53%, transparent 53.5%),
+        conic-gradient(
+          from -90deg,
+          rgba(255,255,255,0.06),
+          rgba(255,255,255,0.02),
+          rgba(255,255,255,0.06)
+        );
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow:
+        inset 0 0 50px rgba(0,0,0,0.45),
+        0 20px 50px rgba(0,0,0,0.28);
+    }
+
+    .progress-ring {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      overflow: visible;
+    }
+
+    .progress-track,
+    .progress-value {
+      fill: none;
+      stroke-width: 5;
+    }
+
+    .progress-track {
+      stroke: rgba(255,255,255,0.055);
+    }
+
+    .progress-value {
+      stroke: var(--work);
+      stroke-linecap: round;
+    }
+
+    .dial.rest .progress-value {
+      stroke: var(--rest);
+    }
+
+    .dial.prepare .progress-value {
+      stroke: var(--prepare);
+    }
+
+    .ticks {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .tick {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 2px;
+      height: 10px;
+      margin-left: -1px;
+      margin-top: -5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.24);
+      transform-origin: 1px 5px;
+    }
+
+    .tick.major {
+      width: 3px;
+      height: 15px;
+      margin-left: -1.5px;
+      margin-top: -7.5px;
+      background: rgba(255,255,255,0.58);
+    }
+
+    .needle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 43%;
+      height: 2px;
+      transform-origin: 0 50%;
+      transform: rotate(-90deg);
+      pointer-events: none;
+    }
+
+    .needle::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 3px;
+      border-radius: 999px;
+      transform: translateY(-50%);
+      background: var(--work);
+      box-shadow: 0 0 12px rgba(255,90,54,0.35);
+    }
+
+    .dial.rest .needle::before {
+      background: var(--rest);
+      box-shadow: 0 0 12px rgba(32,201,151,0.35);
+    }
+
+    .dial.prepare .needle::before {
+      background: var(--prepare);
+      box-shadow: 0 0 12px rgba(242,184,75,0.35);
+    }
+
+    .needle::after {
+      content: "";
+      position: absolute;
+      right: -5px;
+      top: 50%;
+      width: 0;
+      height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 10px solid var(--work);
+      transform: translateY(-50%);
+    }
+
+    .dial.rest .needle::after {
+      border-left-color: var(--rest);
+    }
+
+    .dial.prepare .needle::after {
+      border-left-color: var(--prepare);
+    }
+
+    .center {
+      position: relative;
+      z-index: 2;
+      width: 48%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #11151a;
+      border: 1px solid rgba(255,255,255,0.055);
+      box-shadow: 0 8px 35px rgba(0,0,0,0.3);
+    }
+
+    .seconds {
+      font-size: clamp(54px, 15vw, 78px);
+      line-height: 0.9;
+      font-weight: 850;
+      letter-spacing: -0.08em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .seconds-unit {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .round {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* =========================
+       RÉGLAGES
+       ========================= */
+
+    .settings {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .setting {
+      padding: 14px;
+      border-radius: 16px;
+      background: var(--card);
+      border: 1px solid var(--line);
+    }
+
+    .setting-title {
+      margin-bottom: 9px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 7px;
+    }
+
+    .choice {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--card-2);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .choice:active {
+      transform: scale(0.96);
+    }
+
+    .choice.selected {
+      border-color: var(--work);
+      background: rgba(255,90,54,0.13);
+      color: var(--work);
+    }
+
+    .setting.rest .choice.selected {
+      border-color: var(--rest);
+      background: rgba(32,201,151,0.12);
+      color: var(--rest);
+    }
+
+    .setting.prepare .choice.selected {
+      border-color: var(--prepare);
+      background: rgba(242,184,75,0.12);
+      color: var(--prepare);
+    }
+
+    /* =========================
+       COMMANDES
+       ========================= */
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 9px;
+      margin-top: 16px;
+    }
+
+    .control {
+      min-height: 54px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: var(--card);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .control:active {
+      transform: scale(0.97);
+    }
+
+    .control.primary {
+      background: var(--text);
+      color: #090b0e;
+      border-color: var(--text);
+    }
+
+    .control.primary.running {
+      background: var(--work);
+      border-color: var(--work);
+      color: white;
+    }
+
+    @keyframes finishPulse {
+      0% {
+        transform: scale(0.9);
+        opacity: 0.3;
+      }
+
+      60% {
+        transform: scale(1.08);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @media (max-height: 760px) {
+      .app {
+        padding-top: 14px;
+        padding-bottom: 18px;
+      }
+
+      header {
+        margin-bottom: 8px;
+      }
+
+      .dial {
+        width: min(72vw, 340px);
+      }
+
+      .settings {
+        margin-top: 8px;
+      }
+
+      .setting {
+        padding: 10px 12px;
+      }
+
+      .control {
+        min-height: 48px;
+      }
+    }
+
+    @media (max-width: 370px) {
+      .app {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .choice {
+        font-size: 12px;
+      }
+
+      .setting {
+        padding: 11px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<main class="app">
+
+  <header>
+    <div class="brand">
+      <div class="brand-title">TABATA CORDE</div>
+      <div class="brand-subtitle">
+        Simple · rapide · efficace
+      </div>
+    </div>
+
+    <button
+      class="sound-button"
+      id="soundButton"
+      type="button"
+      aria-label="Afficher les réglages du son"
+      aria-expanded="false"
+    >
+      <svg
+        id="soundIcon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+      </svg>
+    </button>
+  </header>
+
+
+  <section class="sound-panel" id="soundPanel">
+    <div class="sound-row">
+
+      <span class="sound-label">
+        Volume
+      </span>
+
+      <input
+        id="volume"
+        type="range"
+        min="0"
+        max="100"
+        step="10"
+        value="70"
+        aria-label="Volume"
+      >
+
+      <span
+        class="volume-value"
+        id="volumeValue"
+      >
+        70%
+      </span>
+
+    </div>
+  </section>
+
+
+  <section class="timer-section">
+
+    <div
+      class="phase-label prepare"
+      id="phaseLabel"
+    >
+      PRÉPARATION
+    </div>
+
+
+    <div
+      class="dial prepare"
+      id="dial"
+    >
+
+      <div class="dial-face"></div>
+
+
+      <svg
+        class="progress-ring"
+        viewBox="0 0 100 100"
+        aria-hidden="true"
+      >
+
+        <circle
+          class="progress-track"
+          cx="50"
+          cy="50"
+          r="46"
+        ></circle>
+
+        <circle
+          class="progress-value"
+          id="progressValue"
+          cx="50"
+          cy="50"
+          r="46"
+        ></circle>
+
+      </svg>
+
+
+      <div
+        class="ticks"
+        id="ticks"
+      ></div>
+
+
+      <div
+        class="needle"
+        id="needle"
+      ></div>
+
+
+      <div class="center">
+
+        <div
+          class="seconds"
+          id="seconds"
+        >
+          10
+        </div>
+
+        <div class="seconds-unit">
+          secondes
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div
+      class="round"
+      id="roundLabel"
+    >
+      Préparation · Round 1 / 8
+    </div>
+
+  </section>
+
+<section class="controls">
+
+    <button
+      class="control"
+      id="resetButton"
+      type="button"
+    >
+      Réinitialiser
+    </button>
+
+    <button
+      class="control primary"
+      id="startButton"
+      type="button"
+    >
+      Démarrer
+    </button>
+
+    <button
+      class="control"
+      id="pauseButton"
+      type="button"
+    >
+      Pause
+    </button>
+
+  </section>
+
+  <section class="settings">
+
+    <!-- PRÉPARATION -->
+
+    <div class="setting prepare">
+
+      <div class="setting-title">
+        Préparation
+      </div>
+
+      <div
+        class="choices"
+        id="prepareChoices"
+      >
+
+        <button
+          class="choice"
+          data-value="0"
+        >
+          0s
+        </button>
+
+        <button
+          class="choice"
+          data-value="4"
+        >
+          4s
+        </button>
+
+        <button
+          class="choice"
+          data-value="6"
+        >
+          6s
+        </button>
+
+        <button
+          class="choice"
+          data-value="8"
+        >
+          8s
+        </button>
+
+        <button
+          class="choice selected"
+          data-value="10"
+        >
+          10s
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- SAUT -->
+
+    <div class="setting">
+
+      <div class="setting-title">
+        Saut
+      </div>
+
+      <div
+        class="choices"
+        id="workChoices"
+      >
+
+        <button
+          class="choice selected"
+          data-value="20"
+        >
+          20s
+        </button>
+
+        <button
+          class="choice"
+          data-value="30"
+        >
+          30s
+        </button>
+
+        <button
+          class="choice"
+          data-value="40"
+        >
+          40s
+        </button>
+
+        <button
+          class="choice"
+          data-value="60"
+        >
+          60s
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- REPOS -->
+
+    <div class="setting rest">
+
+      <div class="setting-title">
+        Repos
+      </div>
+
+      <div
+        class="choices"
+        id="restChoices"
+      >
+
+        <button
+          class="choice selected"
+          data-value="10"
+        >
+          10s
+        </button>
+
+        <button
+          class="choice"
+          data-value="15"
+        >
+          15s
+        </button>
+
+        <button
+          class="choice"
+          data-value="20"
+        >
+          20s
+        </button>
+
+        <button
+          class="choice"
+          data-value="30"
+        >
+          30s
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- ROUNDS -->
+
+    <div class="setting">
+
+      <div class="setting-title">
+        Rounds
+      </div>
+
+      <div
+        class="choices"
+        id="roundChoices"
+      >
+
+        <button
+          class="choice"
+          data-value="4"
+        >
+          4
+        </button>
+
+        <button
+          class="choice"
+          data-value="6"
+        >
+          6
+        </button>
+
+        <button
+          class="choice selected"
+          data-value="8"
+        >
+          8
+        </button>
+
+        <button
+          class="choice"
+          data-value="10"
+        >
+          10
+        </button>
+
+        <button
+          class="choice"
+          data-value="12"
+        >
+          12
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+</main>
+
+
+<script>
+
+  /* =========================================================
+     TABATA CORDE — V2.4
+     =========================================================
+
+     FICHIERS AUDIO À PLACER À CÔTÉ DE index.html :
+
+     start-saut.mp3
+     start-repos.mp3
+     milieu.mp3
+     countdown-3.mp3
+     countdown-2.mp3
+     countdown-1.mp3
+     termine.mp3
+  ========================================================= */
+
+
+  /* =========================================================
+     1. SONS
+     ========================================================= */
+
+  const SOUND_FILES = {
+
+    workStart: "start-saut.mp3",
+
+    restStart: "start-repos.mp3",
+
+    midpoint: "milieu.mp3",
+
+    countdown3: "countdown-3.mp3",
+
+    countdown2: "countdown-2.mp3",
+
+    countdown1: "countdown-1.mp3",
+
+    finish: "termine.mp3"
+
+  };
+
+
+  const sounds = {};
+
+
+  Object.entries(SOUND_FILES).forEach(
+    ([name, file]) => {
+
+      const audio = new Audio(file);
+
+      audio.preload = "auto";
+
+      audio.volume = 0.7;
+
+      sounds[name] = audio;
+
+    }
+  );
+
+
+  /* =========================================================
+     2. ÉLÉMENTS
+     ========================================================= */
+
+  const dial =
+    document.getElementById("dial");
+
+  const phaseLabel =
+    document.getElementById("phaseLabel");
+
+  const secondsElement =
+    document.getElementById("seconds");
+
+  const roundLabel =
+    document.getElementById("roundLabel");
+
+  const needle =
+    document.getElementById("needle");
+
+  const progressValue =
+    document.getElementById("progressValue");
+
+  const startButton =
+    document.getElementById("startButton");
+
+  const pauseButton =
+    document.getElementById("pauseButton");
+
+  const resetButton =
+    document.getElementById("resetButton");
+
+  const soundButton =
+    document.getElementById("soundButton");
+
+  const soundPanel =
+    document.getElementById("soundPanel");
+
+  const soundIcon =
+    document.getElementById("soundIcon");
+
+  const volumeSlider =
+    document.getElementById("volume");
+
+  const volumeValue =
+    document.getElementById("volumeValue");
+
+
+  /* =========================================================
+     3. RÉGLAGES
+     ========================================================= */
+
+  let preparationDuration = 10;
+
+  let workDuration = 20;
+
+  let restDuration = 10;
+
+  let totalRounds = 8;
+
+
+  /* =========================================================
+     4. ÉTAT
+     ========================================================= */
+
+  /*
+    prepare = préparation
+    work    = saut
+    rest    = repos
+  */
+
+  let phase = "prepare";
+
+  let currentRound = 1;
+
+  let elapsed = 0;
+
+  let running = false;
+
+  let animationFrame = null;
+
+  let previousTimestamp = null;
+
+  let lastAnnouncedSecond = null;
+
+  let midpointAnnounced = false;
+
+  let soundEnabled = true;
+
+
+  /* =========================================================
+     5. GRADUATIONS
+     ========================================================= */
+
+  const ticksContainer =
+    document.getElementById("ticks");
+
+
+  for (let i = 0; i < 60; i++) {
+
+    const tick =
+      document.createElement("div");
+
+    tick.className = "tick";
+
+    if (i % 5 === 0) {
+      tick.classList.add("major");
+    }
+
+    ticksContainer.appendChild(tick);
+
+  }
+
+
+  function positionTicks() {
+
+    const dialSize =
+      dial.getBoundingClientRect().width;
+
+    const radius =
+      dialSize * 0.425;
+
+
+    document
+      .querySelectorAll(".tick")
+      .forEach((tick, index) => {
+
+        const angle =
+          index * 6;
+
+        tick.style.transform =
+          `rotate(${angle}deg) translateY(-${radius}px)`;
+
+      });
+
+  }
+
+
+  window.addEventListener(
+    "resize",
+    positionTicks
+  );
+
+
+  /* =========================================================
+     6. PROGRESSION
+     ========================================================= */
+
+  const radius = 46;
+
+  const circumference =
+    2 * Math.PI * radius;
+
+
+  progressValue.style.strokeDasharray =
+    circumference;
+
+  progressValue.style.strokeDashoffset =
+    circumference;
+
+
+  /* =========================================================
+     7. DURÉE DE LA PHASE
+     ========================================================= */
+
+  function getCurrentDuration() {
+
+    if (phase === "prepare") {
+      return preparationDuration;
+    }
+
+    if (phase === "work") {
+      return workDuration;
+    }
+
+    return restDuration;
+
+  }
+
+
+  function getRemaining() {
+
+    return Math.max(
+      0,
+      getCurrentDuration() - elapsed
+    );
+
+  }
+
+
+  /* =========================================================
+     8. VOLUME
+     ========================================================= */
+
+  function updateVolume() {
+
+    const volume =
+      Number(volumeSlider.value) / 100;
+
+
+    volumeValue.textContent =
+      `${volumeSlider.value}%`;
+
+
+    Object.values(sounds)
+      .forEach(sound => {
+
+        sound.volume = volume;
+
+      });
+
+
+    soundEnabled =
+      volume > 0;
+
+
+    updateSoundIcon();
+
+  }
+
+
+  function updateSoundIcon() {
+
+    if (!soundEnabled) {
+
+      soundIcon.innerHTML = `
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <line x1="23" y1="9" x2="17" y2="15"></line>
+        <line x1="17" y1="9" x2="23" y2="15"></line>
+      `;
+
+    } else {
+
+      soundIcon.innerHTML = `
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+      `;
+
+    }
+
+  }
+
+
+  /* =========================================================
+     9. LECTURE DES SONS
+     ========================================================= */
+
+  function playSound(name) {
+
+    if (!soundEnabled) {
+      return;
+    }
+
+
+    const sound =
+      sounds[name];
+
+
+    if (!sound) {
+      return;
+    }
+
+
+    try {
+
+      sound.pause();
+
+      sound.currentTime = 0;
+
+      sound.volume =
+        Number(volumeSlider.value) / 100;
+
+
+      const promise =
+        sound.play();
+
+
+      if (promise) {
+
+        promise.catch(() => {
+          /*
+            Une éventuelle restriction du navigateur
+            ne bloque pas le chronomètre.
+          */
+        });
+
+      }
+
+    } catch (error) {
+      /*
+        Une erreur audio ne bloque jamais
+        le fonctionnement du timer.
+      */
+    }
+
+  }
+
+
+  /* =========================================================
+     10. AFFICHAGE
+     ========================================================= */
+
+  function render() {
+
+    const duration =
+      getCurrentDuration();
+
+
+    /*
+      Cas particulier :
+      préparation réglée à 0 seconde.
+    */
+
+    const progress =
+      duration === 0
+        ? 1
+        : Math.min(
+            1,
+            Math.max(
+              0,
+              elapsed / duration
+            )
+          );
+
+
+    const remaining =
+      getRemaining();
+
+
+    const angle =
+      -90 + progress * 360;
+
+
+    const offset =
+      circumference *
+      (1 - progress);
+
+
+    secondsElement.textContent =
+      Math.ceil(remaining);
+
+
+    progressValue.style.strokeDashoffset =
+      offset;
+
+
+    needle.style.transform =
+      `rotate(${angle}deg)`;
+
+
+    phaseLabel.classList.remove(
+      "work",
+      "rest",
+      "prepare"
+    );
+
+
+    dial.classList.remove(
+      "rest",
+      "prepare"
+    );
+
+
+    if (phase === "prepare") {
+
+      phaseLabel.textContent =
+        "PRÉPARATION";
+
+      phaseLabel.classList.add(
+        "prepare"
+      );
+
+      dial.classList.add(
+        "prepare"
+      );
+
+      roundLabel.textContent =
+        `Préparation · Round 1 / ${totalRounds}`;
+
+    }
+
+
+    else if (phase === "work") {
+
+      phaseLabel.textContent =
+        "SAUT";
+
+      phaseLabel.classList.add(
+        "work"
+      );
+
+      roundLabel.textContent =
+        `Round ${currentRound} / ${totalRounds}`;
+
+    }
+
+
+    else {
+
+      phaseLabel.textContent =
+        "REPOS";
+
+      phaseLabel.classList.add(
+        "rest"
+      );
+
+      dial.classList.add(
+        "rest"
+      );
+
+      roundLabel.textContent =
+        `Round ${currentRound} / ${totalRounds}`;
+
+    }
+
+  }
+
+
+  /* =========================================================
+     11. COMPTE À REBOURS
+     ========================================================= */
+
+  function announceCountdown() {
+
+    const remaining =
+      getRemaining();
+
+
+    const second =
+      Math.ceil(remaining);
+
+
+    /*
+      Même compte à rebours pour :
+      - préparation
+      - saut
+      - repos
+    */
+
+    if (
+      second >= 1 &&
+      second <= 3 &&
+      second !== lastAnnouncedSecond
+    ) {
+
+      lastAnnouncedSecond =
+        second;
+
+
+      playSound(
+        `countdown${second}`
+      );
+
+    }
+
+
+    /*
+      Son de milieu uniquement
+      pour SAUT et REPOS.
+    */
+
+    if (
+      phase !== "prepare" &&
+      !midpointAnnounced &&
+      elapsed >= getCurrentDuration() / 2
+    ) {
+
+      midpointAnnounced = true;
+
+      playSound(
+        "midpoint"
+      );
+
+    }
+
+  }
+
+
+  /* =========================================================
+     12. PRÉPARATION → SAUT
+     ========================================================= */
+
+  function finishPreparation() {
+
+    phase = "work";
+
+    currentRound = 1;
+
+    elapsed = 0;
+
+    previousTimestamp = null;
+
+    lastAnnouncedSecond = null;
+
+    midpointAnnounced = false;
+
+
+    render();
+
+
+    /*
+      Début du Round 1.
+    */
+
+    playSound("workStart");
+
+  }
+
+
+  /* =========================================================
+     13. CHANGEMENT DE PHASE
+     ========================================================= */
+
+  function changePhase() {
+
+    /*
+      PRÉPARATION → SAUT
+    */
+
+    if (phase === "prepare") {
+
+      finishPreparation();
+
+      return;
+
+    }
+
+
+    /*
+      SAUT → REPOS
+    */
+
+    if (phase === "work") {
+
+      /*
+        Pas de repos après le dernier round.
+      */
+
+      if (
+        currentRound >= totalRounds
+      ) {
+
+        finish();
+
+        return;
+
+      }
+
+
+      phase = "rest";
+
+    }
+
+
+    /*
+      REPOS → SAUT
+    */
+
+    else if (phase === "rest") {
+
+      currentRound += 1;
+
+      phase = "work";
+
+    }
+
+
+    elapsed = 0;
+
+    previousTimestamp = null;
+
+    lastAnnouncedSecond = null;
+
+    midpointAnnounced = false;
+
+
+    render();
+
+
+    /*
+      SON SPÉCIFIQUE AU DÉBUT DE CHAQUE PHASE
+
+      SAUT  → start-saut.mp3
+      REPOS → start-repos.mp3
+    */
+
+    if (phase === "work") {
+
+      playSound(
+        "workStart"
+      );
+
+    } else {
+
+      playSound(
+        "restStart"
+      );
+
+    }
+
+  }
+
+
+  /* =========================================================
+     14. FIN DE LA SÉANCE
+     ========================================================= */
+
+  function finish() {
+
+    running = false;
+
+
+    if (animationFrame) {
+
+      cancelAnimationFrame(
+        animationFrame
+      );
+
+      animationFrame = null;
+
+    }
+
+
+    elapsed =
+      getCurrentDuration();
+
+
+    phaseLabel.textContent =
+      "TERMINÉ";
+
+
+    phaseLabel.classList.remove(
+      "work",
+      "rest",
+      "prepare"
+    );
+
+
+    phaseLabel.classList.add(
+      "finished"
+    );
+
+
+    secondsElement.textContent =
+      "0";
+
+
+    progressValue.style.strokeDashoffset =
+      0;
+
+
+    needle.style.transform =
+      "rotate(270deg)";
+
+
+    roundLabel.textContent =
+      `${totalRounds} rounds terminés`;
+
+
+    startButton.textContent =
+      "Recommencer";
+
+
+    startButton.classList.remove(
+      "running"
+    );
+
+
+    playSound(
+      "finish"
+    );
+
+  }
+
+
+  /* =========================================================
+     15. BOUCLE DU TIMER
+     ========================================================= */
+
+  function timerLoop(timestamp) {
+
+    if (!running) {
+      return;
+    }
+
+
+    if (previousTimestamp === null) {
+
+      previousTimestamp =
+        timestamp;
+
+    }
+
+
+    const delta =
+      (timestamp - previousTimestamp) /
+      1000;
+
+
+    previousTimestamp =
+      timestamp;
+
+
+    elapsed += delta;
+
+
+    const duration =
+      getCurrentDuration();
+
+
+    /*
+      Phase de préparation réglée à 0 seconde
+    */
+
+    if (
+      duration === 0 &&
+      phase === "prepare"
+    ) {
+
+      elapsed = 0;
+
+      changePhase();
+
+    }
+
+
+    /*
+      Fin de phase normale
+    */
+
+    else if (elapsed >= duration) {
+
+      elapsed = duration;
+
+      render();
+
+      changePhase();
+
+
+      if (!running) {
+        return;
+      }
+
+    }
+
+
+    else {
+
+      render();
+
+      announceCountdown();
+
+    }
+
+
+    animationFrame =
+      requestAnimationFrame(
+        timerLoop
+      );
+
+  }
+
+
+  /* =========================================================
+     16. DÉMARRER
+     ========================================================= */
+
+  function startTimer() {
+
+    if (running) {
+      return;
+    }
+
+
+    /*
+      Si la séance est terminée,
+      recommencer par la préparation.
+    */
+
+    if (
+      phase === "work" &&
+      currentRound === totalRounds &&
+      elapsed >= workDuration &&
+      phaseLabel.textContent === "TERMINÉ"
+    ) {
+
+      resetTimer();
+
+    }
+
+
+    running = true;
+
+    previousTimestamp = null;
+
+
+    phaseLabel.classList.remove(
+      "finished"
+    );
+
+
+    startButton.textContent =
+      "En cours";
+
+
+    startButton.classList.add(
+      "running"
+    );
+
+
+    /*
+      La première phase de préparation
+      ne joue aucun son de démarrage.
+
+      Les sons commencent avec :
+      3 → 2 → 1
+    */
+
+
+    /*
+      Si préparation = 0,
+      on passe immédiatement au saut.
+    */
+
+    if (
+      phase === "prepare" &&
+      preparationDuration === 0
+    ) {
+
+      changePhase();
+
+    }
+
+
+    animationFrame =
+      requestAnimationFrame(
+        timerLoop
+      );
+
+  }
+
+
+  /* =========================================================
+     17. PAUSE
+     ========================================================= */
+
+  function pauseTimer() {
+
+    if (!running) {
+      return;
+    }
+
+
+    running = false;
+
+
+    if (animationFrame) {
+
+      cancelAnimationFrame(
+        animationFrame
+      );
+
+      animationFrame = null;
+
+    }
+
+
+    previousTimestamp =
+      null;
+
+
+    startButton.textContent =
+      "Reprendre";
+
+
+    startButton.classList.remove(
+      "running"
+    );
+
+  }
+
+
+  /* =========================================================
+     18. RESET
+     ========================================================= */
+
+  function resetTimer() {
+
+    running = false;
+
+
+    if (animationFrame) {
+
+      cancelAnimationFrame(
+        animationFrame
+      );
+
+      animationFrame = null;
+
+    }
+
+
+    /*
+      Le reset revient toujours
+      à la phase de préparation.
+    */
+
+    phase = "prepare";
+
+    currentRound = 1;
+
+    elapsed = 0;
+
+    previousTimestamp = null;
+
+    lastAnnouncedSecond = null;
+
+    midpointAnnounced = false;
+
+
+    phaseLabel.classList.remove(
+      "finished"
+    );
+
+
+    startButton.textContent =
+      "Démarrer";
+
+
+    startButton.classList.remove(
+      "running"
+    );
+
+
+    render();
+
+  }
+
+
+  /* =========================================================
+     19. CHOIX DES PARAMÈTRES
+     ========================================================= */
+
+  function setupChoices(
+    containerId,
+    callback
+  ) {
+
+    const container =
+      document.getElementById(
+        containerId
+      );
+
+
+    container.addEventListener(
+      "click",
+      event => {
+
+        const button =
+          event.target.closest(
+            ".choice"
+          );
+
+
+        if (!button) {
+          return;
+        }
+
+
+        const value =
+          Number(
+            button.dataset.value
+          );
+
+
+        container
+          .querySelectorAll(".choice")
+          .forEach(item => {
+
+            item.classList.remove(
+              "selected"
+            );
+
+          });
+
+
+        button.classList.add(
+          "selected"
+        );
+
+
+        callback(value);
+
+
+        resetTimer();
+
+      }
+    );
+
+  }
+
+
+  setupChoices(
+    "prepareChoices",
+    value => {
+
+      preparationDuration =
+        value;
+
+    }
+  );
+
+
+  setupChoices(
+    "workChoices",
+    value => {
+
+      workDuration =
+        value;
+
+    }
+  );
+
+
+  setupChoices(
+    "restChoices",
+    value => {
+
+      restDuration =
+        value;
+
+    }
+  );
+
+
+  setupChoices(
+    "roundChoices",
+    value => {
+
+      totalRounds =
+        value;
+
+    }
+  );
+
+
+  /* =========================================================
+     20. VOLUME
+     ========================================================= */
+
+  volumeSlider.addEventListener(
+    "input",
+    updateVolume
+  );
+
+
+  /* =========================================================
+     21. PANNEAU SON
+     ========================================================= */
+
+  soundButton.addEventListener(
+    "click",
+    () => {
+
+      const open =
+        soundPanel.classList.toggle(
+          "open"
+        );
+
+
+      soundButton.setAttribute(
+        "aria-expanded",
+        open
+          ? "true"
+          : "false"
+      );
+
+    }
+  );
+
+
+  /* =========================================================
+     22. BOUTONS
+     ========================================================= */
+
+  startButton.addEventListener(
+    "click",
+    startTimer
+  );
+
+
+  pauseButton.addEventListener(
+    "click",
+    pauseTimer
+  );
+
+
+  resetButton.addEventListener(
+    "click",
+    resetTimer
+  );
+
+
+  /* =========================================================
+     23. INITIALISATION
+     ========================================================= */
+
+  updateVolume();
+
+  render();
+
+  positionTicks();
+
+</script>
+
+</body>
+</html>
