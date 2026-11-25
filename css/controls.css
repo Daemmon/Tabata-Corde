@@ -1,0 +1,48 @@
+/* =========================================================
+   TABATA CORDE — controls.css
+   ---------------------------------------------------------
+   Les trois boutons de commande :
+   Réinitialiser · Démarrer · Pause
+   ========================================================= */
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.control {
+  min-height: 54px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.control:active {
+  transform: scale(0.97);
+}
+
+/* Bouton principal (Démarrer) : blanc */
+.control.primary {
+  background: var(--text);
+  color: #090b0e;
+  border-color: var(--text);
+}
+
+/* Bouton principal pendant que le chrono tourne : orange */
+.control.primary.running {
+  background: var(--work);
+  border-color: var(--work);
+  color: white;
+}
+
+@media (max-height: 760px) {
+  .control {
+    min-height: 48px;
+  }
+}

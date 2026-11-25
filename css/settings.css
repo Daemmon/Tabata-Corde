@@ -1,0 +1,330 @@
+/* =========================================================
+   TABATA CORDE — settings.css
+   ---------------------------------------------------------
+   Les réglages de la séance :
+   1. Interrupteur ON / OFF des réglages
+   2. Panneau repliable (apparaît / disparaît en douceur)
+   3. Rangée de 4 cartes (une par réglage)
+   4. Roulettes « cadenas » (vues de côté, en cylindre)
+   ========================================================= */
+
+
+/* =========================================================
+   1. INTERRUPTEUR ON / OFF
+   Toujours visible sous les commandes : c'est lui qui
+   affiche ou masque les réglages (jamais automatique).
+   ========================================================= */
+
+.settings-toggle {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* Rail de l'interrupteur */
+.switch-track {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card-2);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+/* Bouton rond qui glisse (position OFF) */
+.switch-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+/* Position ON : rail teinté, bouton à droite et coloré */
+.settings-toggle[aria-checked="true"] {
+  color: var(--text);
+}
+
+.settings-toggle[aria-checked="true"] .switch-track {
+  background: rgba(255, 90, 54, 0.14);
+  border-color: var(--work);
+}
+
+.settings-toggle[aria-checked="true"] .switch-track::after {
+  background: var(--work);
+  transform: translateX(18px);
+}
+
+.settings-toggle:focus-visible {
+  outline: 2px solid var(--work);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+
+/* =========================================================
+   2. PANNEAU REPLIABLE
+
+   Astuce : on anime « grid-template-rows » de 1fr à 0fr.
+   Cela permet d'animer la hauteur sans la connaître à l'avance.
+   Le contenu (.settings-inner) est coupé pendant l'animation.
+   ========================================================= */
+
+.settings-panel {
+  display: grid;
+  grid-template-rows: 1fr;
+  margin-top: 6px;
+  opacity: 1;
+  transition:
+    grid-template-rows 0.3s ease,
+    margin-top 0.3s ease,
+    opacity 0.25s ease;
+}
+
+/* État replié : hauteur 0, invisible */
+.settings-panel.collapsed {
+  grid-template-rows: 0fr;
+  margin-top: 0;
+  opacity: 0;
+}
+
+/* Pas d'animation au chargement de la page (classe posée par le JS) */
+.settings-panel.no-anim {
+  transition: none;
+}
+
+.settings-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   3. RANGÉE DE CARTES
+   Quatre colonnes, comme les molettes d'un cadenas à code.
+   ========================================================= */
+
+.settings {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 1px; /* évite de couper les contours au bord du panneau */
+}
+
+.setting {
+  /* Couleur d'accent de la carte (valeur sélectionnée, repère) */
+  --accent: var(--work);
+
+  /* Hauteur d'une ligne de la roulette */
+  --wheel-row: 30px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 6px 10px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+
+/* Chaque réglage reprend la couleur de sa phase */
+.setting--prepare { --accent: var(--prepare); }
+.setting--rest    { --accent: var(--rest); }
+
+.setting-title {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.wheel-unit {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   4. ROULETTE (vue de côté, comme la tranche d'une pièce)
+
+   Structure :
+     .wheel          cadre fixe (ombrages + repère central)
+       .wheel-scroll   liste qui défile (5 lignes visibles)
+         .wheel-item     une valeur
+
+   L'effet de cylindre combine :
+   - le JS, qui incline et resserre chaque valeur selon sa
+     distance au centre (voir js/settings.js) ;
+   - ce CSS, qui ajoute l'ombrage haut et bas.
+   ========================================================= */
+
+.wheel {
+  position: relative;
+  width: 100%;
+  /* 5 lignes visibles (+ 2 px de bordure, pour que la liste mesure
+     exactement 5 lignes et que le centre tombe pile sur une valeur) */
+  height: calc(var(--wheel-row) * 5 + 2px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card-2);
+  overflow: hidden;
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.55);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Ombrage du cylindre : sombre sur les bords haut et bas,
+   plus clair au centre (là où la surface fait face à l'œil) */
+.wheel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(11, 13, 16, 0.95) 0%,
+    rgba(11, 13, 16, 0.45) 22%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(11, 13, 16, 0.45) 78%,
+    rgba(11, 13, 16, 0.95) 100%
+  );
+}
+
+/* Fenêtre de lecture au centre : la valeur sélectionnée */
+.wheel::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: var(--wheel-row);
+  z-index: 3;
+  transform: translateY(-50%);
+  pointer-events: none;
+  border-top: 1px solid var(--accent);
+  border-bottom: 1px solid var(--accent);
+  background: rgba(255, 255, 255, 0.04);
+  opacity: 0.55;
+}
+
+/* La liste qui défile */
+.wheel-scroll {
+  height: 100%;
+  /* Marge haute et basse de 2 lignes : la 1re et la dernière valeur
+     peuvent ainsi venir se placer au centre */
+  padding: calc(var(--wheel-row) * 2) 0;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;   /* la roulette s'arrête toujours sur une valeur */
+  overscroll-behavior: contain;    /* ne fait pas défiler la page derrière */
+  scrollbar-width: none;           /* barre de défilement masquée (Firefox) */
+  cursor: grab;
+  outline: none;
+}
+
+.wheel-scroll::-webkit-scrollbar {
+  display: none;                   /* barre de défilement masquée (Chrome, Safari) */
+}
+
+/* Pendant un glisser à la souris : pas d'aimantation, curseur « main fermée » */
+.wheel-scroll.dragging {
+  scroll-snap-type: none;
+  cursor: grabbing;
+}
+
+/* Contour visible uniquement pour la navigation au clavier */
+.wheel:has(.wheel-scroll:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Une valeur de la roulette */
+.wheel-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--wheel-row);
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  scroll-snap-align: center;
+  will-change: transform, opacity;
+}
+
+/* Valeur actuellement au centre */
+.wheel-item.is-selected {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   ADAPTATIONS
+   ========================================================= */
+
+@media (max-height: 760px) {
+  .setting {
+    --wheel-row: 26px;
+    padding: 10px 6px 8px;
+  }
+
+  .wheel-item {
+    font-size: 18px;
+  }
+
+  .settings-toggle {
+    min-height: 38px;
+  }
+}
+
+/* Très petits écrans : cartes plus serrées */
+@media (max-width: 379px) {
+  .settings {
+    gap: 6px;
+  }
+
+  .setting {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .wheel-item {
+    font-size: 18px;
+  }
+}
+
+/* Respect du réglage « réduire les animations » du système */
+@media (prefers-reduced-motion: reduce) {
+  .settings-panel,
+  .switch-track,
+  .switch-track::after {
+    transition: none;
+  }
+}

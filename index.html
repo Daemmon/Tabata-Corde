@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d10">
+  <title>Tabata Corde — V3.0</title>
+
+  <!-- PWA : manifeste + icônes -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- Feuilles de style (une par rôle) -->
+  <link rel="stylesheet" href="css/base.css">      <!-- thème, mise en page, en-tête, son -->
+  <link rel="stylesheet" href="css/timer.css">     <!-- cadran du chronomètre             -->
+  <link rel="stylesheet" href="css/controls.css">  <!-- boutons Démarrer / Pause / Reset  -->
+  <link rel="stylesheet" href="css/settings.css">  <!-- réglages repliables               -->
+</head>
+
+<body>
+
+<main class="app">
+
+  <!-- =====================================================
+       EN-TÊTE : titre + boutons Réglages et Son
+       ===================================================== -->
+  <header>
+    <div class="brand">
+      <div class="brand-title">TABATA CORDE</div>
+      <div class="brand-subtitle">Simple · rapide · efficace</div>
+    </div>
+
+    <!-- Bouton : afficher / masquer le volume
+         (l'icône est modifiée par ui.js selon que le son est coupé ou non) -->
+    <button
+      class="icon-button"
+      id="soundButton"
+      type="button"
+      aria-label="Afficher les réglages du son"
+      aria-expanded="false"
+    >
+      <svg id="soundIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+      </svg>
+    </button>
+  </header>
+
+
+  <!-- =====================================================
+       PANNEAU DU VOLUME (masqué par défaut)
+       ===================================================== -->
+  <section class="sound-panel" id="soundPanel">
+    <div class="sound-row">
+      <span class="sound-label">Volume</span>
+
+      <input id="volume" type="range" min="0" max="100" step="10" value="70" aria-label="Volume">
+
+      <span class="volume-value" id="volumeValue">70%</span>
+    </div>
+  </section>
+
+
+  <!-- =====================================================
+       SCÈNE : chronomètre + commandes + réglages
+       ===================================================== -->
+  <div class="stage">
+
+    <!-- ----- Chronomètre ----- -->
+    <section class="timer-section">
+
+      <!-- Nom de la phase en cours (rempli par ui.js) -->
+      <div class="phase-label prepare" id="phaseLabel">PRÉPARATION</div>
+
+      <div class="dial prepare" id="dial">
+
+        <div class="dial-face"></div>
+
+        <!-- Anneau de progression -->
+        <svg class="progress-ring" viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="progress-track" cx="50" cy="50" r="46"></circle>
+          <circle class="progress-value" id="progressValue" cx="50" cy="50" r="46"></circle>
+        </svg>
+
+        <!-- Graduations (générées par ui.js) -->
+        <div class="ticks" id="ticks"></div>
+
+        <!-- Aiguille -->
+        <div class="needle" id="needle"></div>
+
+        <!-- Secondes restantes -->
+        <div class="center">
+          <div class="seconds" id="seconds">10</div>
+          <div class="seconds-unit">secondes</div>
+        </div>
+
+      </div>
+
+      <!-- « Round 1 / 8 » -->
+      <div class="round" id="roundLabel">Préparation · Round 1 / 8</div>
+
+    </section>
+
+
+    <!-- ----- Boutons de commande ----- -->
+    <section class="controls">
+      <button class="control" id="resetButton" type="button">Réinitialiser</button>
+      <button class="control primary" id="startButton" type="button">Démarrer</button>
+      <button class="control" id="pauseButton" type="button">Pause</button>
+    </section>
+
+
+    <!-- ----- Interrupteur des réglages (ON / OFF) -----
+         Toujours visible. C'est l'utilisateur, et lui seul, qui affiche
+         ou masque les réglages. Géré par js/settings.js. -->
+    <button
+      class="settings-toggle"
+      id="settingsSwitch"
+      type="button"
+      role="switch"
+      aria-checked="true"
+      aria-controls="settingsPanel"
+    >
+      <span class="settings-toggle-label">Réglages</span>
+      <span class="switch-track" aria-hidden="true"></span>
+    </button>
+
+
+    <!-- ----- Réglages de la séance (repliables) -----
+         Quatre roulettes côte à côte, comme un cadenas à code.
+         Chaque carte porte un attribut data-setting (prepare, work, rest,
+         rounds). Les valeurs proposées (min / max / pas) sont définies
+         dans js/config.js ; les lignes de chaque roulette sont créées
+         par js/settings.js. -->
+    <section class="settings-panel" id="settingsPanel">
+      <div class="settings-inner">
+        <div class="settings">
+
+          <!-- PRÉPA -->
+          <div class="setting setting--prepare" data-setting="prepare">
+            <div class="setting-title">Prépa</div>
+            <div class="wheel">
+              <div class="wheel-scroll" role="spinbutton" tabindex="0"
+                   aria-label="Durée de préparation en secondes"></div>
+            </div>
+            <div class="wheel-unit">secondes</div>
+          </div>
+
+          <!-- SAUT -->
+          <div class="setting" data-setting="work">
+            <div class="setting-title">Saut</div>
+            <div class="wheel">
+              <div class="wheel-scroll" role="spinbutton" tabindex="0"
+                   aria-label="Durée de saut en secondes"></div>
+            </div>
+            <div class="wheel-unit">secondes</div>
+          </div>
+
+          <!-- REPOS -->
+          <div class="setting setting--rest" data-setting="rest">
+            <div class="setting-title">Repos</div>
+            <div class="wheel">
+              <div class="wheel-scroll" role="spinbutton" tabindex="0"
+                   aria-label="Durée de repos en secondes"></div>
+            </div>
+            <div class="wheel-unit">secondes</div>
+          </div>
+
+          <!-- ROUNDS -->
+          <div class="setting" data-setting="rounds">
+            <div class="setting-title">Rounds</div>
+            <div class="wheel">
+              <div class="wheel-scroll" role="spinbutton" tabindex="0"
+                   aria-label="Nombre de rounds"></div>
+            </div>
+            <div class="wheel-unit">rounds</div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /.stage -->
+
+</main>
+
+
+<!-- =========================================================
+     SCRIPTS
+     L'ORDRE EST IMPORTANT : chaque fichier s'appuie sur les
+     précédents (config → audio → ui → settings → timer → main).
+     ========================================================= -->
+<script src="js/config.js"></script>    <!-- constantes et valeurs par défaut -->
+<script src="js/audio.js"></script>     <!-- lecture des sons                 -->
+<script src="js/ui.js"></script>        <!-- affichage (cadran, textes)       -->
+<script src="js/settings.js"></script>  <!-- réglages : roulettes, sauvegarde -->
+<script src="js/timer.js"></script>     <!-- logique du chronomètre           -->
+<script src="js/main.js"></script>      <!-- branchement des boutons          -->
+
+<!-- Enregistrement du service worker (fonctionnement hors ligne) -->
+<script src="js/pwa.js"></script>
+
+</body>
+</html>

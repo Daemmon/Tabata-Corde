@@ -1,0 +1,266 @@
+/* =========================================================
+   TABATA CORDE — timer.css
+   ---------------------------------------------------------
+   Tout ce qui concerne le chronomètre (cadran) :
+   1. Libellé de phase (PRÉPARATION / SAUT / REPOS)
+   2. Cadran, anneau de progression, graduations, aiguille
+   3. Centre du cadran (secondes) et libellé de round
+   4. Animation de fin de séance
+   ========================================================= */
+
+.timer-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+/* =========================================================
+   1. LIBELLÉ DE PHASE
+   La couleur change selon la phase en cours.
+   ========================================================= */
+
+.phase-label {
+  min-height: 30px;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+
+.phase-label.work    { color: var(--work); }
+.phase-label.rest    { color: var(--rest); }
+.phase-label.prepare { color: var(--prepare); }
+
+/* Animation jouée quand la séance est terminée */
+.phase-label.finished {
+  animation: finishPulse 0.8s ease;
+}
+
+
+/* =========================================================
+   2. CADRAN
+   ========================================================= */
+
+.dial {
+  position: relative;
+  width: min(84vw, 410px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+/* Disque sombre en arrière-plan */
+.dial-face {
+  position: absolute;
+  inset: 7%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, #151a20 0 53%, transparent 53.5%),
+    conic-gradient(
+      from -90deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.02),
+      rgba(255, 255, 255, 0.06)
+    );
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 0 50px rgba(0, 0, 0, 0.45),
+    0 20px 50px rgba(0, 0, 0, 0.28);
+}
+
+/* ----- Anneau de progression (SVG) ----- */
+
+.progress-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* le tracé démarre en haut (12 h) */
+  overflow: visible;
+}
+
+.progress-track,
+.progress-value {
+  fill: none;
+  stroke-width: 5;
+}
+
+/* Cercle de fond (gris très discret) */
+.progress-track {
+  stroke: rgba(255, 255, 255, 0.055);
+}
+
+/* Arc coloré qui se remplit au fil du temps */
+.progress-value {
+  stroke: var(--work);
+  stroke-linecap: round;
+}
+
+.dial.rest .progress-value    { stroke: var(--rest); }
+.dial.prepare .progress-value { stroke: var(--prepare); }
+
+/* ----- Graduations (60 petits traits, placés par le JS) ----- */
+
+.ticks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tick {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  height: 10px;
+  margin-left: -1px;
+  margin-top: -5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.24);
+  transform-origin: 1px 5px;
+}
+
+/* Une graduation plus grande toutes les 5 */
+.tick.major {
+  width: 3px;
+  height: 15px;
+  margin-left: -1.5px;
+  margin-top: -7.5px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+/* ----- Aiguille ----- */
+
+.needle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 43%;
+  height: 2px;
+  transform-origin: 0 50%;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+
+/* Corps de l'aiguille */
+.needle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  background: var(--work);
+  box-shadow: 0 0 12px rgba(255, 90, 54, 0.35);
+}
+
+.dial.rest .needle::before {
+  background: var(--rest);
+  box-shadow: 0 0 12px rgba(32, 201, 151, 0.35);
+}
+
+.dial.prepare .needle::before {
+  background: var(--prepare);
+  box-shadow: 0 0 12px rgba(242, 184, 75, 0.35);
+}
+
+/* Pointe de l'aiguille (petit triangle) */
+.needle::after {
+  content: "";
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 10px solid var(--work);
+  transform: translateY(-50%);
+}
+
+.dial.rest .needle::after    { border-left-color: var(--rest); }
+.dial.prepare .needle::after { border-left-color: var(--prepare); }
+
+
+/* =========================================================
+   3. CENTRE DU CADRAN
+   ========================================================= */
+
+.center {
+  position: relative;
+  z-index: 2;
+  width: 48%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #11151a;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  box-shadow: 0 8px 35px rgba(0, 0, 0, 0.3);
+}
+
+/* Grand chiffre : secondes restantes */
+.seconds {
+  font-size: clamp(54px, 15vw, 78px);
+  line-height: 0.9;
+  font-weight: 850;
+  letter-spacing: -0.08em;
+  font-variant-numeric: tabular-nums; /* chiffres de largeur fixe */
+}
+
+.seconds-unit {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* « Round 3 / 8 » sous le cadran */
+.round {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   4. ANIMATION DE FIN
+   ========================================================= */
+
+@keyframes finishPulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.3;
+  }
+
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+/* =========================================================
+   ADAPTATION AUX ÉCRANS PEU HAUTS
+   ========================================================= */
+
+@media (max-height: 760px) {
+  .dial {
+    width: min(72vw, 340px);
+  }
+}
